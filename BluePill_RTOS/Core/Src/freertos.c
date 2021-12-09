@@ -26,6 +26,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
 #include "usb_device.h"
 /* USER CODE END Includes */
 
@@ -46,11 +47,14 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+osThreadId Task3Handle;
 
+uint8_t received = 0;
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
-osThreadId Task2Handle;
-osThreadId Task3Handle;
+osThreadId HighTaskHandle;
+osThreadId LowTaskHandle;
+osSemaphoreId BinSemHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -72,8 +76,8 @@ void Task3_Init(void const * argument);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
-void Task2_Init(void const * argument);
-
+void StartHighTask(void const * argument);
+void StartLowTask(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -108,6 +112,11 @@ void MX_FREERTOS_Init(void) {
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
+  /* Create the semaphores(s) */
+  /* definition and creation of BinSem */
+  osSemaphoreDef(BinSem);
+  BinSemHandle = osSemaphoreCreate(osSemaphore(BinSem), 1);
+
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
@@ -125,13 +134,17 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
-  /* definition and creation of Task2 */
-  osThreadDef(Task2, Task2_Init, osPriorityAboveNormal, 0, 128);
-  Task2Handle = osThreadCreate(osThread(Task2), NULL);
+  /* definition and creation of HighTask */
+  osThreadDef(HighTask, StartHighTask, osPriorityAboveNormal, 0, 128);
+  HighTaskHandle = osThreadCreate(osThread(HighTask), NULL);
+
+  /* definition and creation of LowTask */
+  osThreadDef(LowTask, StartLowTask, osPriorityBelowNormal, 0, 128);
+  LowTaskHandle = osThreadCreate(osThread(LowTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-	osThreadDef(Task3, Task3_Init, osPriorityBelowNormal,0, 128);
+	osThreadDef(Task3, Task3_Init, osPriorityNormal,0, 128);
 	Task3Handle = osThreadCreate(osThread(Task3), NULL);
   /* USER CODE END RTOS_THREADS */
 
@@ -152,31 +165,81 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-		//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-		send_deftask();
-    osDelay(1000);
+		uint8_t temp_buffer[] = "Entered Normal Task!\n\r";
+		USB_SendMessage(temp_buffer, sizeof(temp_buffer), 10);
+		
+		
+		
+		uint8_t temp_buffer2[] = "Leaving Normal Task!\n\r";
+		USB_SendMessage(temp_buffer2, sizeof(temp_buffer2), 10);
+		
+    osDelay(500);
   }
   /* USER CODE END StartDefaultTask */
 }
 
-/* USER CODE BEGIN Header_Task2_Init */
+/* USER CODE BEGIN Header_StartHighTask */
 /**
-* @brief Function implementing the Task2 thread.
+* @brief Function implementing the HighTask thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_Task2_Init */
-void Task2_Init(void const * argument)
+/* USER CODE END Header_StartHighTask */
+void StartHighTask(void const * argument)
 {
-  /* USER CODE BEGIN Task2_Init */
+  /* USER CODE BEGIN StartHighTask */
   /* Infinite loop */
   for(;;)
   {
-		//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-		send_task2();
-    osDelay(1000);
+		uint8_t temp_buffer[] = "Hih Task Esperando Semaforo!\n\r";
+		USB_SendMessage(temp_buffer, sizeof(temp_buffer), 10);
+		
+		osSemaphoreWait(BinSemHandle, osWaitForever);
+		
+		uint8_t temp_buffer3[] = "High Task Pegou Semaforo!\n\r";
+		USB_SendMessage(temp_buffer3, sizeof(temp_buffer3), 10);
+		
+		uint8_t temp_buffer2[] = "High Task Soltando Semaforo!\n\r";
+		USB_SendMessage(temp_buffer2, sizeof(temp_buffer2), 10);
+		
+		osSemaphoreRelease(BinSemHandle);
+		
+    osDelay(500);
   }
-  /* USER CODE END Task2_Init */
+  /* USER CODE END StartHighTask */
+}
+
+/* USER CODE BEGIN Header_StartLowTask */
+/**
+* @brief Function implementing the LowTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartLowTask */
+void StartLowTask(void const * argument)
+{
+  /* USER CODE BEGIN StartLowTask */
+  /* Infinite loop */
+  for(;;)
+  {
+		uint8_t temp_buffer[] = "Low Task Esperando Semaforo!\n\r";
+		USB_SendMessage(temp_buffer, sizeof(temp_buffer), 10);
+		
+		osSemaphoreWait(BinSemHandle, osWaitForever);
+		
+		uint8_t temp_buffer3[] = "Low Task Pegou Semaforo!\n\r";
+		USB_SendMessage(temp_buffer3, sizeof(temp_buffer3), 10);
+		
+		HAL_Delay(5000);
+		
+		uint8_t temp_buffer2[] = "Low Task Soltando Semaforo!\n\r";
+		USB_SendMessage(temp_buffer2, sizeof(temp_buffer2), 10);
+		
+		osSemaphoreRelease(BinSemHandle);
+		
+    osDelay(500);
+  }
+  /* USER CODE END StartLowTask */
 }
 
 /* Private application code --------------------------------------------------*/
@@ -185,8 +248,8 @@ void Task3_Init(void const * argument)
 {
 	for(;;)
   {
-		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-		send_task3();
+		//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		//send_task3();
 		osDelay(3000);
   }
 }

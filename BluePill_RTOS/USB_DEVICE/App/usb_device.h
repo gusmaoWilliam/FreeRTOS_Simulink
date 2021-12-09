@@ -64,7 +64,7 @@
  * -- Insert your variables declaration here --
  */
 /* USER CODE BEGIN VARIABLES */
-
+extern uint8_t myBuffer[50];
 /* USER CODE END VARIABLES */
 /**
   * @}

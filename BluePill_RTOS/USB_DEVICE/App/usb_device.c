@@ -38,7 +38,7 @@
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+void USB_SendMessage(uint8_t *buf, uint8_t len, uint16_t timeout);
 /* USER CODE END PFP */
 
 /* USB Device Core handle declaration. */
@@ -55,7 +55,16 @@ USBD_HandleTypeDef hUsbDeviceFS;
  * -- Insert your external function declaration here --
  */
 /* USER CODE BEGIN 1 */
-
+void USB_SendMessage(uint8_t *buf, uint8_t len, uint16_t timeout)
+{
+	for(uint16_t i = 0; i < timeout; i++)
+	{
+		if(CDC_Transmit_FS(buf, len) != USBD_OK)
+			HAL_Delay(1);
+		else
+			return;
+	}
+}
 /* USER CODE END 1 */
 
 /**
