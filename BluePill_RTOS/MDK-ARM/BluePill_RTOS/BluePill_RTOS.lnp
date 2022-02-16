@@ -6,6 +6,7 @@
 "bluepill_rtos\stm32f1xx_it.o"
 "bluepill_rtos\stm32f1xx_hal_msp.o"
 "bluepill_rtos\stm32f1xx_hal_timebase_tim.o"
+"bluepill_rtos\waittime.o"
 "bluepill_rtos\stm32f1xx_hal_gpio_ex.o"
 "bluepill_rtos\stm32f1xx_hal_pcd.o"
 "bluepill_rtos\stm32f1xx_hal_pcd_ex.o"
