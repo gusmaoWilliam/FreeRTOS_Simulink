@@ -25,7 +25,18 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+//#include "FreeRTOS.h"
+#include "task.h"
+#include "timers.h"
+#include "queue.h"
+#include "semphr.h"
+#include "event_groups.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "WaitTime.h"                  /* Model's header file */
+#include "rtwtypes.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -39,7 +50,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define my_itoa(num, str) sprintf(str, "%d", num)
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -52,12 +63,33 @@
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-
+extern void MX_USB_DEVICE_Init(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+//Create task defines
+TaskHandle_t HPTHandler;
+void HPT_TASK (void *pvParameters);
 
+TaskHandle_t MPTHandler;
+void MPT_TASK (void *pvParameters);
+
+TaskHandle_t LPTHandler;
+void LPT_TASK (void *pvParameters);
+
+TaskHandle_t VLPTHandler;
+void VLPT_TASK (void *pvParameters);
+
+//Semaphore related
+SemaphoreHandle_t CountingSem;
+
+//Resource Related
+int resource[] = {111, 222, 333};
+int indx = 0;
+
+//USB Related
+uint8_t rx_data = 0;
 /* USER CODE END 0 */
 
 /**
@@ -89,19 +121,31 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
-
+	
+  CountingSem = xSemaphoreCreateCounting(3, 0);
+  
+  xTaskCreate(HPT_TASK, "HPT", 128, NULL, 3, &HPTHandler);
+  xTaskCreate(MPT_TASK, "MPT", 128, NULL, 2, &MPTHandler);
+  xTaskCreate(LPT_TASK, "LPT", 128, NULL, 1, &LPTHandler);
+  xTaskCreate(VLPT_TASK, "VLPT", 128, NULL, 0, &VLPTHandler);
+	
+	MX_USB_DEVICE_Init();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
-  MX_FREERTOS_Init();
+  //MX_FREERTOS_Init();
   /* Start scheduler */
-  osKernelStart();
+  //osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	WaitTime_initialize();
   while (1)
   {
+		WaitTime_step();
+		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		HAL_Delay(rtY.WaitTime_g);
 		
     /* USER CODE END WHILE */
 
@@ -156,6 +200,112 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HPT_TASK (void *pvParameters)
+{
+  char sresource[3];
+
+  xSemaphoreGive(CountingSem);
+  xSemaphoreGive(CountingSem);
+  xSemaphoreGive(CountingSem);
+
+  while(1)
+  {
+    char str[150];
+    strcpy(str, "Entered HPT Task\n About to ACQUIRE the Semaphore\n\n");
+    USB_SendMessage(str, strlen(str), 10);
+
+    xSemaphoreTake(CountingSem, portMAX_DELAY);
+
+    my_itoa(resource[indx], sresource);
+    strcpy(str, "Leaving HPT Task\n Data ACCESSED is:: ");
+    strcat(str, sresource);
+    strcat(str, "\n Not Releasing the Semaphore\n\n\n");
+    USB_SendMessage(str, strlen(str), 10);
+
+    indx++;
+    if(indx > 2)
+      indx = 0;
+
+    vTaskDelay(3000);
+  }
+
+}
+void MPT_TASK (void *pvParameters)
+{
+  char sresource[3];
+
+  while(1)
+  {
+    char str[150];
+    strcpy(str, "Entered MPT Task\n About to ACQUIRE the Semaphore\n\n");
+    USB_SendMessage(str, strlen(str), 10);
+
+    xSemaphoreTake(CountingSem, portMAX_DELAY);
+
+    my_itoa(resource[indx], sresource);
+    strcpy(str, "Leaving MPT Task\n Data ACCESSED is:: ");
+    strcat(str, sresource);
+    strcat(str, "\n Not Releasing the Semaphore\n\n\n");
+    USB_SendMessage(str, strlen(str), 10);
+
+    indx++;
+    if(indx > 2)
+      indx = 0;
+
+    vTaskDelay(2000);
+  }
+}
+void LPT_TASK (void *pvParameters)
+{
+  char sresource[3];
+
+  while(1)
+  {
+    char str[150];
+    strcpy(str, "Entered LPT Task\n About to ACQUIRE the Semaphore\n\n");
+    USB_SendMessage(str, strlen(str), 10);
+
+    xSemaphoreTake(CountingSem, portMAX_DELAY);
+
+    my_itoa(resource[indx], sresource);
+    strcpy(str, "Leaving LPT Task\n Data ACCESSED is:: ");
+    strcat(str, sresource);
+    strcat(str, "\n Not Releasing the Semaphore\n\n\n");
+    USB_SendMessage(str, strlen(str), 10);
+
+    indx++;
+    if(indx > 2)
+      indx = 0;
+
+    vTaskDelay(1000);
+  }
+}
+void VLPT_TASK (void *pvParameters)
+{
+    char sresource[3];
+
+  while(1)
+  {
+    char str[150];
+    strcpy(str, "Entered VLPT Task\n About to ACQUIRE the Semaphore\n\n");
+    USB_SendMessage(str, strlen(str), 10);
+
+    xSemaphoreTake(CountingSem, portMAX_DELAY);
+
+    my_itoa(resource[indx], sresource);
+    strcpy(str, "Leaving VLPT Task\n Data ACCESSED is:: ");
+    strcat(str, sresource);
+    strcat(str, "\n Not Releasing the Semaphore\n\n\n");
+    USB_SendMessage(str, strlen(str), 10);
+
+    indx++;
+    if(indx > 2)
+      indx = 0;
+
+    vTaskDelay(3000);
+  }
+}
+
 
 /* USER CODE END 4 */
 
