@@ -22,25 +22,27 @@ Dialog DLL:      TCM.DLL V1.46.0.0
  
 <h2>Project:</h2>
 D:\Users\willi\Documents\Git\LearningFreeRTOS\BluePill_RTOS\MDK-ARM\BluePill_RTOS.uvprojx
-Project File Date:  02/15/2022
+Project File Date:  02/17/2022
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'D:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'BluePill_RTOS'
 compiling main.c...
-../Core/Src/main.c(215): warning:  #223-D: function "USB_SendMessage" declared implicitly
-      USB_SendMessage(str, strlen(str), 10);
-../Core/Src/main.c(241): warning:  #223-D: function "USB_SendMessage" declared implicitly
-      USB_SendMessage(str, strlen(str), 10);
-../Core/Src/main.c(266): warning:  #223-D: function "USB_SendMessage" declared implicitly
-      USB_SendMessage(str, strlen(str), 10);
-../Core/Src/main.c(291): warning:  #223-D: function "USB_SendMessage" declared implicitly
-      USB_SendMessage(str, strlen(str), 10);
-../Core/Src/main.c: 4 warnings, 0 errors
+../Core/Src/main.c(241): warning:  #188-D: enumerated type mixed with another type
+      HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, rtY.Out_Ld);
+../Core/Src/main.c(207): warning:  #177-D: variable "sresource"  was declared but never referenced
+    char sresource[3];
+../Core/Src/main.c(249): warning:  #177-D: variable "sresource"  was declared but never referenced
+    char sresource[3];
+../Core/Src/main.c(275): warning:  #177-D: variable "sresource"  was declared but never referenced
+    char sresource[3];
+../Core/Src/main.c(301): warning:  #177-D: variable "sresource"  was declared but never referenced
+      char sresource[3];
+../Core/Src/main.c: 5 warnings, 0 errors
 linking...
-Program Size: Code=22964 RO-data=588 RW-data=540 ZI-data=10028  
+Program Size: Code=17092 RO-data=332 RW-data=524 ZI-data=10596  
 FromELF: creating hex file...
-"BluePill_RTOS\BluePill_RTOS.axf" - 0 Error(s), 4 Warning(s).
+"BluePill_RTOS\BluePill_RTOS.axf" - 0 Error(s), 5 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -64,7 +66,7 @@ Package Vendor: Keil
 
    * Component: ARM::CMSIS:CORE:5.4.0
       Include file:  CMSIS\Core\Include\tz_context.h
-Build Time Elapsed:  00:00:02
+Build Time Elapsed:  00:00:03
 </pre>
 </body>
 </html>

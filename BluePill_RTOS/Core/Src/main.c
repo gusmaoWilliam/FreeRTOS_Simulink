@@ -35,7 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "WaitTime.h"                  /* Model's header file */
+#include "StateMach.h"                  /* Model's header file */
 #include "rtwtypes.h"
 /* USER CODE END Includes */
 
@@ -56,7 +56,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+  char btn_test = 0;
+	uint16_t debouncetime = 100;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -133,20 +134,21 @@ int main(void)
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
-  //MX_FREERTOS_Init();
+  MX_FREERTOS_Init();
   /* Start scheduler */
-  //osKernelStart();
+  osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	WaitTime_initialize();
+	//WaitTime_initialize();
   while (1)
   {
+    /*
 		WaitTime_step();
 		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 		HAL_Delay(rtY.WaitTime_g);
-		
+		*/
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -203,13 +205,15 @@ void SystemClock_Config(void)
 void HPT_TASK (void *pvParameters)
 {
   char sresource[3];
+  StateMach_initialize();
+  //xSemaphoreGive(CountingSem);
+  //xSemaphoreGive(CountingSem);
+  //xSemaphoreGive(CountingSem);
 
-  xSemaphoreGive(CountingSem);
-  xSemaphoreGive(CountingSem);
-  xSemaphoreGive(CountingSem);
 
   while(1)
   {
+    /*
     char str[150];
     strcpy(str, "Entered HPT Task\n About to ACQUIRE the Semaphore\n\n");
     USB_SendMessage(str, strlen(str), 10);
@@ -225,8 +229,18 @@ void HPT_TASK (void *pvParameters)
     indx++;
     if(indx > 2)
       indx = 0;
+*/
+    //Simulink
 
-    vTaskDelay(3000);
+    /* Inputs */
+    rtU.In_Btn = btn_test;
+    rtU.In_DebTime = debouncetime;
+
+    StateMach_step();
+
+    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, rtY.Out_Ld);
+
+    vTaskDelay(1);
   }
 
 }
@@ -236,11 +250,12 @@ void MPT_TASK (void *pvParameters)
 
   while(1)
   {
+    /*
     char str[150];
     strcpy(str, "Entered MPT Task\n About to ACQUIRE the Semaphore\n\n");
     USB_SendMessage(str, strlen(str), 10);
 
-    xSemaphoreTake(CountingSem, portMAX_DELAY);
+    //xSemaphoreTake(CountingSem, portMAX_DELAY);
 
     my_itoa(resource[indx], sresource);
     strcpy(str, "Leaving MPT Task\n Data ACCESSED is:: ");
@@ -251,7 +266,7 @@ void MPT_TASK (void *pvParameters)
     indx++;
     if(indx > 2)
       indx = 0;
-
+*/
     vTaskDelay(2000);
   }
 }
@@ -261,11 +276,12 @@ void LPT_TASK (void *pvParameters)
 
   while(1)
   {
+    /*
     char str[150];
     strcpy(str, "Entered LPT Task\n About to ACQUIRE the Semaphore\n\n");
     USB_SendMessage(str, strlen(str), 10);
 
-    xSemaphoreTake(CountingSem, portMAX_DELAY);
+    //xSemaphoreTake(CountingSem, portMAX_DELAY);
 
     my_itoa(resource[indx], sresource);
     strcpy(str, "Leaving LPT Task\n Data ACCESSED is:: ");
@@ -276,7 +292,7 @@ void LPT_TASK (void *pvParameters)
     indx++;
     if(indx > 2)
       indx = 0;
-
+*/
     vTaskDelay(1000);
   }
 }
@@ -286,11 +302,12 @@ void VLPT_TASK (void *pvParameters)
 
   while(1)
   {
+    /*
     char str[150];
     strcpy(str, "Entered VLPT Task\n About to ACQUIRE the Semaphore\n\n");
     USB_SendMessage(str, strlen(str), 10);
 
-    xSemaphoreTake(CountingSem, portMAX_DELAY);
+    //xSemaphoreTake(CountingSem, portMAX_DELAY);
 
     my_itoa(resource[indx], sresource);
     strcpy(str, "Leaving VLPT Task\n Data ACCESSED is:: ");
@@ -301,7 +318,7 @@ void VLPT_TASK (void *pvParameters)
     indx++;
     if(indx > 2)
       indx = 0;
-
+*/
     vTaskDelay(3000);
   }
 }
